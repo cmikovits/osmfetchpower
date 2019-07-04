@@ -83,7 +83,7 @@ def writeshape(nodes, name):
 
             genoutel = node.tags.get("generator:output:electricity", "unknown")
             genoutmw = -9999
-            if re.search("[+-]?([0-9]*[.])?[0-9]+", electricity):
+            if re.search("[+-]?([0-9]*[.])?[0-9]+", genoutel):
                 genoutmw = float(re.search("[+-]?([0-9]*[.])?[0-9]+", genoutel)[0])
                 if "kw" in genoutel.lower():
                     genoutmw = genoutmw / 1000
@@ -92,9 +92,9 @@ def writeshape(nodes, name):
             except AttributeError:
                 point = Point(node.center_lon, node.center_lat)
             prop = {
-                'method': method.lower(),
-                'source': source.lower(),
-                'elmw': gentoutmw}
+                'method': genmethod.lower(),
+                'source': gensource.lower(),
+                'elmw': genoutmw}
             output.write({'geometry': mapping(point), 'properties': prop})
 
 def checkdub():
@@ -141,7 +141,7 @@ def main():
     nodes, ways, rels = getfeatures(country, "power", "generator")
     features = features + nodes + ways + rels
 
-    writeshape(features, COUNTRY)
+    writeshape(features, country)
 
 if __name__ == "__main__":
     main()
