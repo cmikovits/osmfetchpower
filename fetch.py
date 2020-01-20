@@ -19,6 +19,9 @@ def fetchFeatures(areaId, year, osmkey, osmtype):
                                  out='center meta')
     return overpass.query(query, timeout=60)
 
+def fetchFirstVersion(id):
+    api = Api()
+    return(api.query('node/' + str(id) + '/1'))
 
 @click.command()
 @click.option('-area', '-a', help='country input', default='Vienna', type=str)
@@ -30,7 +33,8 @@ def main(area, loglevel):
     nominatim = Nominatim()
     areaId = nominatim.query(area).areaId()
 
-    osmtypes = {'power': 'generator'}
+    osmtypes = {'power': 'generator',
+                'power': 'plant'}
     
     for osmkey, osmval in osmtypes.items():
         year = 2010
@@ -42,8 +46,6 @@ def main(area, loglevel):
         print(data.elements()[i].lat(), " ", data.elements()[i].lat())
         print(data.elements()[i].tags())
         if (data.elements()[i].version() > 1):
-            api = Api()
-            nelement = api.query('node/' + str(id) + '/1')
             print('older version: ', nelement.id())
             print(nelement.timestamp())
 
