@@ -1,37 +1,51 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import click
 import logging
 from OSMPythonTools.overpass import overpassQueryBuilder, Overpass
+from OSMPythonTools.api import Api
+from OSMPythonTools.nominatim import Nominatim
+from collections import OrderedDict
+import time
 
 
-overpass = Overpass()
-query = overpassQueryBuilder(area=areaId, elementType='node', selector='"natural"="tree"', out='count')
-result = overpass.query(query)
-result.countElements()
+def fetchFeatures(areaId, year, osmkey, osmtype):
+    overpass = Overpass()
+
+    query = overpassQueryBuilder(area=areaId,
+                                 elementType='node',
+                                 selector='"' + osmkey + '"="' + osmtype + '"',
+                                 includeGeometry=True,
+                                 out='center meta')
+    return overpass.query(query, timeout=60)
+
 
 @click.command()
-@click.option('-country', '-c', help='country input', default='LU', type=str)
-@click.option('-loglevel', '-l', help='log level', default='DEBUG', type=str)
-def main(country, loglevel):
-    logging.basicConfig(level=logging.)
-    
-    parser = argparse.ArgumentParser(description='Process some integers.')
-    parser.add_argument('--country')
-    country =  parser.parse_args().country
-    print('Country:{}'.format(country))
-    print('fetching plants')
-    st = time.time()
-    nodes, ways, rels = getfeatures(country, "power", "plant")
-    features = nodes + ways + rels
-    et = time.time()
-    print('waiting for {:.0f} seconds'.format(et - st))
-    time.sleep(et - st)
-    print('fetching generators')
-    nodes, ways, rels = getfeatures(country, "power", "generator")
-    features = features + nodes + ways + rels
+@click.option('-area', '-a', help='country input', default='Vienna', type=str)
+@click.option('-loglevel', '-l', help='log level (INFO, DEBUG)', default='DEBUG', type=str)
+def main(area, loglevel):
+    logging.basicConfig()
+    logging.getLogger().setLevel(loglevel)
 
-    writeshape(features, country)
+    nominatim = Nominatim()
+    areaId = nominatim.query(area).areaId()
+
+    osmtypes = {'power': 'generator'}
+    
+    for osmkey, osmval in osmtypes.items():
+        year = 2010
+        data = fetchFeatures(areaId, year, osmkey, osmval)
+
+    for i in range(0, data.countElements()):
+        id = data.elements()[i].id()
+        print(data.elements()[i].id())
+        print(data.elements()[i].lat(), " ", data.elements()[i].lat())
+        print(data.elements()[i].tags())
+        if (data.elements()[i].version() > 1):
+            api = Api()
+            nelement = api.query('node/' + str(id) + '/1')
+            print('older version: ', nelement.id())
+            print(nelement.timestamp())
 
 if __name__ == "__main__":
     main()
