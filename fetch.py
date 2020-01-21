@@ -19,25 +19,35 @@ def fetchFeatures(areaId, year, osmkey, osmtype):
                                  out='center meta')
     return overpass.query(query, timeout=60)
 
-def fetchFirstVersion(id):
+def fetchFeatureVersion(id, version):
     api = Api()
     return(api.query('node/' + str(id) + '/1'))
+    
+def writeGEO(data, path, dataname):
+    data.to_file(filename = os.path.join(path, 'geojson', dataname+'.geojson'), driver="GeoJSON")
+    data.to_file(filename = os.path.join(path, 'shape', dataname+'.shp'), driver = 'ESRI Shapefile')
+    data.to_file(filename = os.path.join(path, 'data.gpkg'), layer = dataname, driver = 'GPKG')
+    return(0)
 
 @click.command()
-@click.option('-area', '-a', help='country input', default='Vienna', type=str)
+@click.option('-area', '-a', help='area input', default='Vienna', type=str)
 @click.option('-loglevel', '-l', help='log level (INFO, DEBUG)', default='DEBUG', type=str)
 def main(area, loglevel):
-    logging.basicConfig()
+    logging.basicConfig(format='%(asctime)s, %(message)s',
+                       datefmt='%Y-%m-%d/ %H:%M:%S')
     logging.getLogger().setLevel(loglevel)
 
     nominatim = Nominatim()
     areaId = nominatim.query(area).areaId()
+    
+    logging.debug("area: %s, id: %s",area,areaId)
+    
+    year = 2020
 
     osmtypes = {'power': 'generator',
                 'power': 'plant'}
     
     for osmkey, osmval in osmtypes.items():
-        year = 2010
         data = fetchFeatures(areaId, year, osmkey, osmval)
 
     for i in range(0, data.countElements()):
