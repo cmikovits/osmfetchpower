@@ -88,7 +88,7 @@ def main(area, loglevel):
     nominatim = Nominatim()
     areaId = nominatim.query(area).areaId()
     
-    logging.debug("area: %s, id: %s",area,areaId)
+    logging.info("area: %s, id: %s",area,areaId)
     selectors = {'power':
                     ['plant','generator']
                  }
@@ -97,13 +97,12 @@ def main(area, loglevel):
     
     for osmkey, osmvalues in selectors.items():
         for osmval in osmvalues:
-            logging.debug("fetching %s = %s",osmkey, osmval)
+            logging.info("fetching %s = %s",osmkey, osmval)
             data = fetchFeatures(areaId, osmkey, osmval)
-            logging.debug("Number of Elements: %s", data.countElements())
+            logging.info("Number of Elements: %s", data.countElements())
             for i in range(0, data.countElements()):
                 e = data.elements()[i]
                 if (e.tag('type')=='site'):
-                    print('site')
                     continue
                 
                 # id, lat, lon, timestamp, tags
